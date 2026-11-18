@@ -1,0 +1,59 @@
+CONTROL LEGAL | IndustriXPro
+Versión inicial web multiempresa (MVP)
+
+QUÉ INCLUYE
+- Aplicación web adaptable a computadora y celular.
+- Acceso con correo y contraseña mediante Supabase Auth.
+- Roles: administrador de plataforma y cliente.
+- Aislamiento de datos por empresa mediante Row Level Security (RLS).
+- Módulos: cumplimiento municipal, estatal, federal, estudios y capacitación.
+- Fechas, estatus calculado, búsqueda, filtros, evidencia por URL y exportación CSV.
+- Papelera lógica (soft delete); restauración visible para administrador.
+- La información vive en Supabase, no en el almacenamiento local del navegador.
+
+IMPORTANTE
+Esta es una primera versión funcional preparada para desplegar. No está conectada todavía a tu cuenta ni publicada. No pegues claves privadas en el código.
+El plan gratuito de proveedores tiene límites, puede cambiar y no equivale a un SLA empresarial. El esquema incluido es una base inicial; antes de usarlo con información sensible o clientes reales, verifica políticas, respaldos y pruebas de acceso.
+
+PASO 1 — Crear proyecto Supabase
+1. Entra a https://supabase.com y crea un proyecto gratuito.
+2. En Project Settings > API copia Project URL y la clave anon/publicable.
+3. En SQL Editor abre una consulta nueva, pega todo el contenido de supabase/schema.sql y ejecuta.
+4. En Authentication > Settings deshabilita el registro público de usuarios.
+5. En Authentication > Users crea tu usuario administrador con correo y contraseña.
+
+PASO 2 — Asignar administrador
+1. En Authentication > Users copia el UUID de tu usuario.
+2. En Table Editor > companies crea una fila: name = IndustriXPro. Copia el UUID generado.
+3. En Table Editor > profiles crea una fila:
+   id = UUID de tu usuario
+   company_id = UUID de IndustriXPro
+   role = platform_admin
+   company_name = IndustriXPro
+
+PASO 3 — Desplegar en Cloudflare Pages
+1. Crea un repositorio GitHub vacío llamado control-legal-industr i xpro (sin espacios; sugerido: control-legal-industri xpro → mejor usa control-legal-industriXpro).
+2. Sube index.html y la carpeta supabase.
+3. En Cloudflare Dashboard > Workers & Pages > Create > Pages > Connect to Git.
+4. Selecciona el repositorio. Framework preset: None. Build command: vacío. Build output directory: / (raíz).
+5. Despliega. Cloudflare te dará una URL *.pages.dev.
+
+PASO 4 — Conectar la aplicación
+1. Abre la URL publicada.
+2. En la pantalla Configurar conexión pega Project URL y la clave anon/publicable de Supabase.
+3. Inicia sesión con el usuario administrador.
+
+PASO 5 — Dar de alta clientes
+1. En Supabase > Table Editor > companies agrega el nombre del cliente.
+2. En Authentication > Users crea un usuario para ese cliente.
+3. En profiles crea su fila con el UUID de usuario, UUID de empresa, role = client y company_name.
+4. Comparte la URL y sus credenciales con el cliente.
+Cada cliente solo podrá consultar y modificar registros de su empresa; el administrador puede consultar todas.
+
+SEGURIDAD / LIMITACIONES DE ESTA VERSIÓN
+- No hay carga de archivos a un repositorio documental; por ahora se captura una URL de evidencia.
+- La papelera es lógica; el administrador puede restaurar registros desde el módulo Papelera.
+- El registro de auditoría está preparado como tabla, pero todavía no registra automáticamente cada cambio.
+- El alta de clientes se hace desde Supabase, no desde un asistente dentro de la app.
+- Antes de uso productivo, hacer pruebas con dos empresas distintas y verificar que ninguna puede ver datos de la otra.
+- No guardar contraseñas, service_role keys ni secretos en GitHub o en el navegador.
