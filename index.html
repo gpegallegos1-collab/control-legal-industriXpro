@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CONTROL LEGAL | IndustriXPro</title>
- <!-- Actualizacion de despliegue IndustriXPro -->
 <meta name="description" content="Plataforma de control de cumplimiento legal, estudios y capacitación.">
 <style>
 :root{--ink:#20252b;--muted:#68727d;--line:#e3e7eb;--bg:#f4f6f8;--red:#d93636;--red2:#a91f2a;--white:#fff;--green:#18794e;--amber:#a76500;--shadow:0 8px 30px #1b27351a}
@@ -34,7 +33,7 @@
 <div id="adminTools" class="panel hidden"><div class="headrow" style="margin:0"><div><h2>Administración IndustriXPro</h2><p class="muted">Vista global de empresas y registros.</p></div><button class="secondary" id="refreshBtn">Actualizar</button></div><div class="filters"><select id="companyFilter"><option value="">Todas las empresas</option></select></div></div>
 <div class="stats"><div class="stat"><b id="totalN">0</b><span>Registros activos</span></div><div class="stat"><b id="okN">0</b><span>Vigentes / completos</span></div><div class="stat"><b id="soonN">0</b><span>Por vencer (90 días)</span></div><div class="stat"><b id="lateN">0</b><span>Vencidos</span></div></div>
 <nav class="tabs"><button class="tab active" data-tab="all">Todos</button><button class="tab" data-tab="municipal">Municipales</button><button class="tab" data-tab="state">Estatales</button><button class="tab" data-tab="federal">Federales</button><button class="tab" data-tab="studies">Estudios</button><button class="tab" data-tab="training">Capacitación</button><button class="tab" data-tab="trash" id="trashTab">Papelera</button><button class="tab" data-tab="companies" id="companiesTab">Empresas y clientes</button></nav>
-<section id="recordsPanel" class="panel"><div class="filters"><input id="search" placeholder="Buscar requisito, estudio, curso..."><select id="statusFilter"><option value="">Todos los estados</option><option>Vigente</option><option>Por vencer</option><option>Vencido</option><option>En proceso</option><option>No aplica</option><option>Sin fecha</option></select></div><div class="tablewrap"><table><thead><tr><th>Registro</th><th>Tipo / ámbito</th><th>Responsable / autoridad</th><th>Vencimiento</th><th>Estado</th><th id="companyTh" class="hidden">Empresa</th><th>Acciones</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hidden">No hay registros para mostrar.</div></div></section><section id="companiesPanel" class="panel hidden"><div class="headrow"><div><h2>Empresas y clientes</h2><p class="muted">Administra organizaciones y crea sus accesos privados.</p></div><button id="addCompanyBtn">+ Nueva empresa / cliente</button></div><div id="companiesList"></div><p class="hint">La creación de usuarios requiere activar la función segura de administración en Supabase. Nunca se expone la clave secreta en el navegador.</p></section>
+<section id="recordsPanel" class="panel"><div class="filters"><input id="search" placeholder="Buscar requisito, estudio, curso..."><select id="statusFilter"><option value="">Todos los estados</option><option>Vigente</option><option>Por vencer</option><option>Vencido</option><option>En proceso</option><option>No aplica</option><option>Sin fecha</option></select></div><div class="tablewrap"><table><thead><tr><th>Registro</th><th>Tipo / ámbito</th><th>Responsable / autoridad</th><th>Vencimiento</th><th>Estado</th><th id="companyTh" class="hidden">Empresa</th><th>Acciones</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hidden">No hay registros para mostrar.</div></div></section><section id="companiesPanel" class="panel hidden"><div class="headrow"><div><h2>Empresas y clientes</h2><p class="muted">Administra organizaciones y crea sus accesos privados.</p></div><button id="addCompanyBtn">+ Nueva empresa / cliente</button></div><div id="companiesList"></div><p class="hint">La creación y eliminación de accesos se realiza mediante funciones seguras de Supabase. Eliminar una empresa también elimina sus registros legales asociados.</p></section>
 </section>
 <div class="foot">CONTROL LEGAL · IndustriXPro · Plataforma de gestión de cumplimiento</div>
 </main>
@@ -110,7 +109,17 @@ window.editRec=id=>{let r=records.find(x=>x.id===id);if(r)openModal(r)};
 window.deleteRec=async id=>{if(!confirm('¿Enviar este registro a la papelera?'))return;const {error}=await sb.from('legal_records').update({is_deleted:true,deleted_at:new Date().toISOString()}).eq('id',id);if(error)toast(error.message);else{toast('Registro enviado a papelera');await loadRecords()}};
 window.restoreRec=async id=>{if(!confirm('¿Restaurar este registro?'))return;const {error}=await sb.from('legal_records').update({is_deleted:false,deleted_at:null}).eq('id',id);if(error)toast(error.message);else{toast('Registro restaurado');await loadRecords()}};
 function showTabView(){const companyView=tab==='companies';show('companiesPanel',companyView);show('recordsPanel',!companyView);$('statsView')&&show('statsView',!companyView);}
-function renderCompanies(){ $('companiesList').innerHTML=companies.map(c=>`<div class="company-card"><div><strong>${esc(c.name)}</strong><small>Empresa registrada · ${new Date(c.created_at||Date.now()).toLocaleDateString('es-MX')}</small></div><div class="company-actions"><button class="secondary rowbtn" onclick="filterCompany('${c.id}')">Ver registros</button></div></div>`).join('')||'<div class="empty">Todavía no hay empresas registradas.</div>'; }
+function renderCompanies(){ $('companiesList').innerHTML=companies.map(c=>`<div class="company-card"><div><strong>${esc(c.name)}</strong><small>Empresa registrada · ${new Date(c.created_at||Date.now()).toLocaleDateString('es-MX')}</small></div><div class="company-actions"><button class="secondary rowbtn" onclick="filterCompany('${c.id}')">Ver registros</button><button class="danger rowbtn" onclick="deleteClient('${c.id}')">Eliminar cliente</button></div></div>`).join('')||'<div class="empty">Todavía no hay empresas registradas.</div>'; }
+window.deleteClient=async id=>{
+ const company=companies.find(c=>c.id===id);if(!company)return;
+ const warning=`¿Eliminar definitivamente a ${company.name}?\n\nSe eliminará su acceso de usuario y todos sus registros legales asociados. Esta acción no se puede deshacer.`;
+ if(!confirm(warning))return;
+ try{
+  const {data,error}=await sb.functions.invoke('admin-delete-client',{body:{company_id:id}});
+  if(error)throw error;if(data?.error)throw new Error(data.error);
+  toast(`Cliente eliminado: ${company.name}`);await loadCompanies();await loadRecords();renderCompanies();
+ }catch(err){toast('No se pudo eliminar: '+(err.message||'Revisa los registros de la función admin-delete-client.'))}
+};
 window.filterCompany=async id=>{$('companyFilter').value=id;tab='all';document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='all'));showTabView();await loadRecords()};
 async function openCompanies(){await loadCompanies();renderCompanies();showTabView()}
 $('addCompanyBtn').onclick=()=>{ $('companyForm').reset();show('companyModalBack') };
