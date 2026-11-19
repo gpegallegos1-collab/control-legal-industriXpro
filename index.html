@@ -31,6 +31,45 @@
 .master-subpanel{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
 .master-history{margin-top:10px;padding:10px;border-radius:9px;background:#f8fafb;border:1px solid var(--line)}
 @media(max-width:850px){.master-grid{grid-template-columns:1fr}.master-item{display:block}.master-item-actions{justify-content:flex-start;margin-top:9px}}
+
+/* AJUSTE DE LEGIBILIDAD: nombres y textos largos */
+.master-grid > *, .master-card, .master-item > div:first-child,
+.company-card > div:first-child, .company-logo-control > div:last-child,
+.grid2 > *, .toolbar > div, .headrow > div {min-width:0}
+.master-item {min-width:0; flex-wrap:wrap}
+.master-item > div:first-child {flex:1 1 320px; min-width:0}
+.master-item strong,
+.master-item p,
+.master-item small,
+.company-card strong,
+.company-card .subline,
+.subline, .muted, .hint {
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.master-item strong {display:block; line-height:1.45}
+.master-item p {line-height:1.45}
+.master-item-actions {flex:0 1 auto; max-width:100%}
+.company-card {min-width:0; flex-wrap:wrap}
+.company-logo-control {flex:1 1 280px; min-width:0}
+.company-brand-name, .client-brand-name {min-width:0}
+.client-brand-name strong {white-space:normal; overflow-wrap:anywhere; line-height:1.25}
+.tablewrap {max-width:100%; -webkit-overflow-scrolling:touch}
+td, th {overflow-wrap:anywhere}
+td.activity, td.notes {white-space:normal; line-height:1.4}
+.appl-select {white-space:normal}
+.field label {line-height:1.35; overflow-wrap:anywhere}
+input, select, textarea {min-width:0; max-width:100%}
+.tabs .tab {white-space:normal; line-height:1.25}
+@media(max-width:850px){
+  .master-item > div:first-child {flex-basis:100%}
+  .master-item-actions {justify-content:flex-start}
+  .company-card {align-items:flex-start}
+  .client-brand-name {max-width:min(48vw,190px)}
+  .top-left {flex-wrap:wrap}
+}
+
 </style>
 </head>
 <body>
