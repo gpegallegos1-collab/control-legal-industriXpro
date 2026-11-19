@@ -195,6 +195,19 @@ input, select, textarea {min-width:0; max-width:100%}
   vertical-align: top !important;
   line-height: 1.4 !important;
 }
+
+/* Indicador de cumplimiento legal por planta */
+.plant-compliance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:15px}
+.plant-compliance-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:linear-gradient(180deg,#fff,#fafbfc)}
+.plant-compliance-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.plant-compliance-name{font-weight:800;font-size:13px}
+.plant-compliance-percent{font-size:25px;font-weight:900;letter-spacing:-.6px;white-space:nowrap}
+.plant-progress{height:9px;background:#edf0f2;border-radius:99px;overflow:hidden;margin:10px 0 8px}
+.plant-progress>span{display:block;height:100%;border-radius:99px;background:#208653;transition:width .25s ease}
+.plant-compliance-meta{font-size:11px;color:var(--muted);line-height:1.45}
+.plant-compliance-foot{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--muted)}
+@media(max-width:600px){.plant-compliance-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -206,7 +219,7 @@ input, select, textarea {min-width:0; max-width:100%}
 <section id="app" class="hidden">
  <div class="headrow"><div><h1 id="welcome">Matriz de cumplimiento</h1><p id="companyLine">Seguimiento de obligaciones, estudios, permisos y capacitaciones.</p></div><div class="actions"><button class="secondary" id="refreshBtn">Actualizar</button><button class="secondary" id="importBtn">Importar Excel</button><button class="secondary" id="exportBtn">Exportar Excel</button><button id="newBtn">+ Agregar registro</button><input id="importFile" class="hidden" type="file" accept=".xlsx,.xls" /></div></div>
  <section id="adminTools" class="panel hidden"><div class="toolbar"><div><strong>Administración de IndustriXPro</strong><div class="subline">Selecciona una empresa y una planta para revisar su matriz.</div></div><div class="actions"><select id="companyFilter"><option value="">Todas las empresas</option></select><button class="secondary" id="companiesBtn">Empresas, plantas y usuarios</button></div></div></section>
- <section id="plantScope" class="panel"><div class="toolbar"><div><strong>Planta de trabajo</strong><div class="subline" id="plantScopeHint">Solo se muestran las plantas asignadas a tu usuario.</div></div><div class="actions"><select id="plantFilter" aria-label="Seleccionar planta"><option value="">Todas mis plantas asignadas</option></select></div></div></section>
+ <section id="plantScope" class="panel"><div class="toolbar"><div><strong>Planta de trabajo</strong><div class="subline" id="plantScopeHint">Solo se muestran las plantas asignadas a tu usuario.</div></div><div class="actions"><select id="plantFilter" aria-label="Seleccionar planta"><option value="">Todas mis plantas asignadas</option></select></div></div><div id="plantComplianceOverview" class="plant-compliance-grid" aria-live="polite"></div></section>
  <div class="stats"><div class="stat"><b id="totalN">0</b><span>Registros activos</span></div><div class="stat"><b id="okN">0</b><span>Vigentes / en tiempo</span></div><div class="stat"><b id="soonN">0</b><span>Por vencer / renovar</span></div><div class="stat"><b id="lateN">0</b><span>Vencidos</span></div></div>
  <nav class="tabs"><button class="tab active" data-tab="all">Diagnóstico</button><button class="tab" data-tab="municipal">Cumplimiento Municipal</button><button class="tab" data-tab="state">Cumplimiento Estatal</button><button class="tab" data-tab="federal">Cumplimiento Federal</button><button class="tab" data-tab="estudio">Estudios</button><button class="tab" data-tab="capacitacion">Capacitaciones</button><button class="tab hidden" data-tab="companies" id="companiesTab">Empresas</button><button class="tab hidden" data-tab="master" id="masterTab">Catálogo legal</button></nav>
  <section id="matrixPanel" class="panel"><div class="toolbar"><div><strong id="matrixHeading">Matriz de requisitos y trámites</strong><div class="subline" id="matrixSubline">Diagnóstico conserva todos los registros. Al marcar “Aplica”, aparecen también en la sección correspondiente; los comentarios se conservan por separado.</div></div><div class="filters"><input id="search" placeholder="Buscar actividad, norma, dependencia..."><select id="statusFilter"><option value="">Todos los estatus</option><option value="Vigente">Vigente</option><option value="Por vencer">Por vencer</option><option value="Vencido">Vencido</option><option value="Sin fecha">Sin fecha</option><option value="En espera de dictamen">En espera de dictamen</option><option value="No aplica">No aplica</option></select></div></div><div class="tablewrap"><table><thead id="matrixThead"><tr><th>No.</th><th>Cumplimiento</th><th>Tipo de documento</th><th>Actividad</th><th class="legal-ref-head">Referencia legal</th><th class="dependency-head">Dependencia / instructor</th><th>Frecuencia</th><th>Fecha expedición</th><th>Fecha vencimiento</th><th>Iniciar trámite</th><th>Status documento</th><th>Status trámite</th><th>Documento</th><th>Observaciones</th><th>Acciones</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hidden">No hay registros. Pulsa <b>Agregar registro</b> para comenzar o importa tu Excel.</div></div></section>
@@ -361,8 +374,27 @@ function currentTabRows(){
  const st=$('statusFilter').value;if(st)arr=arr.filter(r=>docStatus(r)===st);
  return arr;
 }
+function plantComplianceStats(rows){
+ const applicable=rows.filter(r=>(r.applicability_status||'Pendiente')==='Aplica');
+ const compliant=applicable.filter(r=>docStatus(r)==='Vigente'||(docStatus(r)==='Sin fecha'&&processStatus(r)==='En tiempo'));
+ const total=applicable.length;
+ return {total,compliant,pending:rows.filter(r=>(r.applicability_status||'Pendiente')==='Pendiente').length,notApplicable:rows.filter(r=>r.applicability_status==='No aplica').length,percent:total?Math.round(compliant.length/total*100):null};
+}
+function renderPlantCompliance(){
+ const host=$('plantComplianceOverview');if(!host)return;
+ const targets=selectedPlantId?plants.filter(p=>p.id===selectedPlantId):plants;
+ if(!targets.length){host.innerHTML='<div class="plant-compliance-card"><div class="plant-compliance-name">Cumplimiento legal</div><div class="plant-compliance-meta">No hay plantas disponibles para calcular el indicador.</div></div>';return}
+ host.innerHTML=targets.map(p=>{
+  const stats=plantComplianceStats(records.filter(r=>r.plant_id===p.id));
+  const pct=stats.percent===null?'—':`${stats.percent}%`;
+  const width=stats.percent===null?0:stats.percent;
+  const status=stats.percent===null?'Sin obligaciones aplicables evaluadas':`${stats.compliant} de ${stats.total} obligaciones aplicables vigentes / en tiempo`;
+  return `<div class="plant-compliance-card"><div class="plant-compliance-top"><div><div class="plant-compliance-name">${esc(p.name)}</div><div class="plant-compliance-meta">Cumplimiento legal</div></div><div class="plant-compliance-percent">${pct}</div></div><div class="plant-progress" role="progressbar" aria-label="Cumplimiento legal de ${esc(p.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${stats.percent??0}"><span style="width:${width}%"></span></div><div class="plant-compliance-meta">${status}</div><div class="plant-compliance-foot"><span>Pendientes: ${stats.pending}</span><span>No aplica: ${stats.notApplicable}</span></div></div>`;
+ }).join('');
+}
 function render(){
  const live=records;
+ renderPlantCompliance();
  $('totalN').textContent=live.length;
  $('okN').textContent=live.filter(r=>['Vigente','En tiempo'].includes(docStatus(r))||processStatus(r)==='En tiempo').length;
  $('soonN').textContent=live.filter(r=>['Por vencer','Renovar'].includes(docStatus(r))||processStatus(r)==='Renovar').length;
