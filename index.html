@@ -147,6 +147,30 @@ input, select, textarea {min-width:0; max-width:100%}
   width: auto !important;
 }
 
+
+
+/* AJUSTE PUNTUAL: evitar traslape entre Referencia legal y Dependencia/Instructor */
+#matrixPanel .tablewrap table td.legal-ref-cell {
+  min-width: 230px !important;
+  width: 270px !important;
+  max-width: 300px !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  vertical-align: top !important;
+  line-height: 1.4 !important;
+}
+#matrixPanel .tablewrap table td.dependency-cell {
+  min-width: 190px !important;
+  width: 220px !important;
+  max-width: 260px !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  vertical-align: top !important;
+  line-height: 1.4 !important;
+}
+
 </style>
 </head>
 <body>
@@ -332,7 +356,7 @@ function render(){
   $('matrixThead').innerHTML=`<tr><th>No.</th><th>Planta</th><th>Descripción</th><th>${thirdLabel}</th><th>Norma(s) aplicable(s)</th><th>Frecuencia</th><th>Fecha de Expedición</th><th>Fecha de Vencimiento</th><th>Fecha para Iniciar trámite</th><th>${statusLabel}</th><th>Status del Trámite</th><th>Documento</th><th>Observaciones</th></tr>`;
   $('rows').innerHTML=arr.map((r,i)=>{
    const ds=docStatus(r),ps=processStatus(r);
-   return `<tr class="editable-row" data-row-id="${esc(r.id)}" title="Haz clic en la fila para editarla"><td>${i+1}</td><td class="plant-cell">${esc(plantLabel(r.plant_id))}</td><td class="activity">${esc(r.activity)}</td><td>${esc(r.dependency||'—')}</td><td>${esc(r.legal_reference||'—')}</td><td>${esc(r.frequency||'—')}</td>${showWorkflowColumns?`<td class="smallcell">${fmtDate(r.issue_date)}</td><td class="smallcell">${fmtDate(r.expiration_date)}</td><td class="smallcell">${fmtDate(r.renewal_start_date)}</td><td><span class="pill ${badgeClass(ds)}">${esc(ds)}</span></td><td><span class="pill ${badgeClass(ps)}">${esc(ps)}</span></td><td>${r.document_path?`<a href="#" onclick="openStoredDoc(event,this)" data-docpath="${esc(r.document_path)}">Abrir documento</a>`:`<a href="#" onclick="editRow('${r.id}');return false;">Cargar documento</a>`}</td>`:''}<td class="notes">${esc(r.observations||'—')}</td></tr>`;
+   return `<tr class="editable-row" data-row-id="${esc(r.id)}" title="Haz clic en la fila para editarla"><td>${i+1}</td><td class="plant-cell">${esc(plantLabel(r.plant_id))}</td><td class="activity">${esc(r.activity)}</td><td class="dependency-cell">${esc(r.dependency||'—')}</td><td class="legal-ref-cell">${esc(r.legal_reference||'—')}</td><td>${esc(r.frequency||'—')}</td>${showWorkflowColumns?`<td class="smallcell">${fmtDate(r.issue_date)}</td><td class="smallcell">${fmtDate(r.expiration_date)}</td><td class="smallcell">${fmtDate(r.renewal_start_date)}</td><td><span class="pill ${badgeClass(ds)}">${esc(ds)}</span></td><td><span class="pill ${badgeClass(ps)}">${esc(ps)}</span></td><td>${r.document_path?`<a href="#" onclick="openStoredDoc(event,this)" data-docpath="${esc(r.document_path)}">Abrir documento</a>`:`<a href="#" onclick="editRow('${r.id}');return false;">Cargar documento</a>`}</td>`:''}<td class="notes">${esc(r.observations||'—')}</td></tr>`;
   }).join('');
  }else{
   $('matrixHeading').textContent='Matriz de requisitos y trámites';
