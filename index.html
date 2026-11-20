@@ -397,10 +397,17 @@ window.changeApplicability=async(ev,id)=>{
  }
  select.disabled=true;
  try{
-  const updated={...row,applicability_status:next,applicability_justification:next==='No aplica'?justification.trim():null,evaluated_by:user?.id||row.evaluated_by||null,evaluated_by_email:user?.email||row.evaluated_by_email||null,evaluated_at:new Date().toISOString()};
-  const {error}=await sb.from(TABLE).update({diagnosis_snapshot:updated,updated_at:new Date().toISOString()}).eq('id',id);
+  const evaluatedAt=new Date().toISOString();
+  const updated={...row,applicability_status:next,applicability_justification:next==='No aplica'?justification.trim():null,evaluated_by:user?.id||row.evaluated_by||null,evaluated_by_email:user?.email||row.evaluated_by_email||null,evaluated_at:evaluatedAt};
+  // La evaluación de aplicabilidad es el vínculo intencional entre módulos:
+  // al marcar Aplica, el registro vuelve a estar disponible en su módulo operativo.
+  // Los campos operativos (observaciones, documentos, fechas, etc.) NO se copian
+  // al snapshot del Diagnóstico ni se sobrescriben desde aquí.
+  const operationalPatch={applicability_status:next,applicability_justification:updated.applicability_justification,updated_at:evaluatedAt};
+  if(next==='Aplica')Object.assign(operationalPatch,{is_deleted:false,deleted_at:null});
+  const {error}=await sb.from(TABLE).update({diagnosis_snapshot:updated,...operationalPatch}).eq('id',id);
   if(error)throw error;
-  Object.assign(row,updated);select.disabled=false;render();toast('Evaluación guardada únicamente en Diagnóstico.');
+  Object.assign(row,updated);select.disabled=false;await loadMatrix();toast(next==='Aplica'?'Evaluación actualizada: el registro vuelve a aparecer en su módulo operativo.':'Evaluación guardada en Diagnóstico; los datos operativos permanecen independientes.');
  }catch(e){select.disabled=false;select.value=previous;toast('No se pudo guardar la evaluación: '+e.message)}
 };
 $('rows').addEventListener('click',ev=>{if(ev.target.closest('a,button,input,select'))return;const row=ev.target.closest('tr[data-row-id]');if(row)window.editRow(row.dataset.rowId)});
