@@ -566,8 +566,10 @@ $('importBtn').onclick=()=>{$('importFile').value='';$('importFile').click()};$(
   const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:false});
   const rows=rowsFromWorkbook(wb);
   if(!rows.length){toast('No encontré filas con encabezados compatibles en el Excel. No se modificó la información existente.');return}
+  const counts={cumplimiento:rows.filter(r=>r.record_type==='cumplimiento').length,estudio:rows.filter(r=>r.record_type==='estudio').length,capacitacion:rows.filter(r=>r.record_type==='capacitacion').length};
+  const preview=`Vista previa del Excel\n\nTotal detectado: ${rows.length}\nTrámites: ${counts.cumplimiento}\nEstudios: ${counts.estudio}\nCapacitaciones: ${counts.capacitacion}\n\nSe cargarán exactamente los registros detectados en el archivo. No existe un límite fijo de filas ni una cantidad obligatoria por clasificación.`;
   const activeExisting=records.filter(r=>r.company_id===companyId&&r.plant_id===plantId&&!r.is_deleted);
-  const message=`Vas a reemplazar la matriz de esta planta.\n\nExcel: ${rows.length} registros.\nSistema: ${activeExisting.length} registros actuales.\n\nSe eliminarán los registros actuales de esta empresa y planta y se cargarán únicamente los del Excel. Esta acción no se puede deshacer desde el sistema.\n\n¿Deseas continuar?`;
+  const message=`${preview}\n\nSistema: ${activeExisting.length} registros actuales.\n\nVas a reemplazar la matriz de esta planta. Se eliminarán los registros actuales de esta empresa y planta y se cargarán únicamente los ${rows.length} registros detectados en este Excel. Esta acción no se puede deshacer desde el sistema.\n\n¿Deseas continuar?`;
   if(!confirm(message))return;
   // Insertar primero el nuevo contenido. Si falla, se conserva la matriz anterior.
   const payload=rows.map(r=>({...r,company_id:companyId,plant_id:plantId,applicability_status:'Pendiente',is_deleted:false}));
