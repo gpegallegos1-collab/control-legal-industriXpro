@@ -313,7 +313,7 @@ input, select, textarea {min-width:0; max-width:100%}
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
 const TABLE='company_legal_matrix',DOC_BUCKET='legal-matrix-documents';let sb=null,user=null,profile=null,companies=[],records=[],tab='all',editingId=null,currentCompany=null;let plants=[],selectedPlantId='',accessCompanyId='',accessPlants=[],accessUsers=[],editingAccessUserId=null;
-const $=id=>document.getElementById(id);const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
+const $=id=>document.getElementById(id);const show=(target,on=true)=>{const el=typeof target==='string'?$(target):target;if(el&&el.classList)el.classList.toggle('hidden',!on);};
 function toast(msg){$('toast').textContent=msg;show('toast');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>show('toast',false),4200)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isAdmin(){return profile?.role==='platform_admin'}
