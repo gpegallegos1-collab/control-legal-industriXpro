@@ -572,64 +572,63 @@ function rowsFromWorkbook(wb){let out=[];for(const name of wb.SheetNames){const 
 $('importBtn').onclick=()=>{$('importFile').value='';$('importFile').click()};
 $('importFile').onchange=async e=>{
  const f=e.target.files?.[0];if(!f)return;
- if(!window.XLSX){toast('No se cargó el lector de Excel. Revisa tu conexión a Internet.');return}
+ if(!window.XLSX){toast('No se cargó el lector de Excel.');return}
  const companyId=isAdmin()?$('companyFilter').value:profile.company_id;
  const plantId=selectedPlantId;
- if(!companyId){toast('Selecciona primero una empresa en el filtro superior.');return}
- if(!plantId){toast('Selecciona una planta específica antes de importar el Excel.');return}
- const diagnosisMode=tab==='all';
- const btn=$('importBtn');const oldLabel=btn.textContent;btn.disabled=true;btn.textContent='Importando...';
+ if(!companyId||!plantId){toast('Selecciona empresa y planta antes de importar.');return}
+ const btn=$('importBtn'),oldLabel=btn.textContent;btn.disabled=true;btn.textContent='Preparando importación...';
+ let inserted=0,updated=0,skipped=0,failed=[];
  try{
-  const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:false});
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
   const rows=rowsFromWorkbook(wb);
-  if(!rows.length){toast('No encontré filas con encabezados compatibles en el Excel. Revisa que la hoja comience con IMPORTAR y tenga las columnas Actividad y Referencia legal.');return}
-  const scoped=records.filter(r=>r.company_id===companyId&&r.plant_id===plantId);
-  const keyOf=r=>norm(r.activity)+'|'+(norm(r.record_type||'cumplimiento'));
+  if(!rows.length)throw new Error('No se detectaron filas. Revisa la hoja IMPORTAR_CUMPLIMIENTOS.');
+  // Leer la base completa de esa empresa/planta en páginas explícitas; no usar el arreglo visible,
+  // que puede estar filtrado o limitado por la interfaz.
+  let existing=[],offset=0,pageSize=100;
+  while(true){
+   const {data,error}=await sb.from(TABLE).select('id,activity,record_type,diagnosis_snapshot,diagnosis_deleted,diagnosis_only').eq('company_id',companyId).eq('plant_id',plantId).range(offset,offset+pageSize-1);
+   if(error)throw new Error('No se pudieron consultar los registros existentes: '+error.message);
+   const page=data||[];existing=existing.concat(page);
+   if(page.length<pageSize)break;
+   offset+=pageSize;
+  }
+  const normKey=v=>norm(v||'').replace(/\s+/g,' ');
+  const keyOf=r=>normKey(r.activity)+'|'+normKey(r.record_type||'cumplimiento');
   const byKey=new Map();
-  scoped.forEach(r=>{const k=keyOf(r);if(!byKey.has(k))byKey.set(k,r)});
-  const inserts=[],updates=[];
-  for(const row of rows){
-   const key=keyOf(row);const match=byKey.get(key);
+  existing.forEach(r=>{const k=keyOf(r);if(!byKey.has(k))byKey.set(k,r)});
+  const diagnosisMode=tab==='all';
+  for(let i=0;i<rows.length;i++){
+   const row=rows[i],key=keyOf(row),match=byKey.get(key);
+   btn.textContent=`Importando ${i+1}/${rows.length}...`;
    if(match){
     if(diagnosisMode&&(!match.diagnosis_snapshot||match.diagnosis_deleted)){
      const snapshot={...row,company_id:companyId,plant_id:plantId,document_path:null,diagnosis_document_path:null,applicability_status:'Pendiente',applicability_justification:null,evaluated_by:null,evaluated_by_email:null,evaluated_at:null};
-     updates.push({id:match.id,diagnosis_snapshot:snapshot,diagnosis_deleted:false});
-    }
+     const {error}=await sb.from(TABLE).update({diagnosis_snapshot:snapshot,diagnosis_deleted:false}).eq('id',match.id);
+     if(error){failed.push(`${row.activity}: ${error.message}`);continue}
+     match.diagnosis_snapshot=snapshot;match.diagnosis_deleted=false;updated++;
+    }else skipped++;
     continue;
    }
-   const obj={...row,company_id:companyId,plant_id:plantId};
-   if(diagnosisMode){
-    const snapshot={...obj,document_path:null,diagnosis_document_path:null,applicability_status:'Pendiente',applicability_justification:null,evaluated_by:null,evaluated_by_email:null,evaluated_at:null};
-    inserts.push({...obj,document_path:null,diagnosis_only:true,diagnosis_snapshot:snapshot});
-   }else{
-    inserts.push({...obj,diagnosis_only:false});
-   }
-   byKey.set(key,{...obj,diagnosis_snapshot:diagnosisMode?true:null});
+   const obj={...row,company_id:companyId,plant_id:plantId,document_path:null,diagnosis_only:diagnosisMode};
+   if(diagnosisMode)obj.diagnosis_snapshot={...obj,diagnosis_document_path:null,applicability_status:'Pendiente',applicability_justification:null,evaluated_by:null,evaluated_by_email:null,evaluated_at:null};
+   const {data,error}=await sb.from(TABLE).insert(obj).select('id').single();
+   if(error){failed.push(`${row.activity}: ${error.message}`);continue}
+   inserted++;
+   byKey.set(key,{id:data.id,activity:row.activity,record_type:row.record_type,diagnosis_snapshot:obj.diagnosis_snapshot||null,diagnosis_deleted:false});
   }
-  let updated=0,inserted=0;
-  for(let i=0;i<updates.length;i+=100){
-   const batch=updates.slice(i,i+100);
-   for(const item of batch){
-    const {error}=await sb.from(TABLE).update({diagnosis_snapshot:item.diagnosis_snapshot,diagnosis_deleted:false,updated_at:new Date().toISOString()}).eq('id',item.id);
-    if(error)throw error;
-    updated++;
-   }
-  }
-  for(let i=0;i<inserts.length;i+=100){
-   const batch=inserts.slice(i,i+100);
-   const {error}=await sb.from(TABLE).insert(batch);
-   if(error)throw error;
-   inserted+=batch.length;
-  }
-  const summary=['cumplimiento','estudio','capacitacion'].map(t=>`${t==='cumplimiento'?'Cumplimientos':t==='estudio'?'Estudios':'Capacitaciones'}: ${inserts.filter(r=>r.record_type===t).length}`).join(' · ');
-  const skipped=rows.length-inserts.length-updates.length;
-  toast(`Excel leído: ${rows.length} filas. Nuevos: ${inserted}. Diagnóstico actualizado: ${updated}. Ya existentes: ${skipped}. ${summary}`);
   await loadMatrix();
+  const msg=`Excel: ${rows.length} filas. Nuevos: ${inserted}. Diagnóstico completado: ${updated}. Ya existentes: ${skipped}. Errores: ${failed.length}.`;
+  toast(msg);
+  if(failed.length){
+   console.error('Errores de importación:',failed);
+   alert(msg+'\n\nPrimeros errores:\n'+failed.slice(0,10).join('\n')+'\n\nAbre la consola del navegador para ver el detalle completo.');
+  }else{
+   alert(msg+'\n\nSe consultó Supabase directamente y se procesaron las '+rows.length+' filas del Excel.');
+  }
  }catch(err){
-  toast('No se pudo completar la importación: '+(err.message||'Error desconocido')+'. Revisa si hubo una carga parcial antes de volver a intentarlo.');
- }finally{
-  btn.disabled=false;btn.textContent=oldLabel;
- }
+  toast('Importación detenida: '+(err.message||'Error desconocido'));
+  alert('Importación detenida:\n'+(err.message||'Error desconocido'));
+ }finally{btn.disabled=false;btn.textContent=oldLabel}
 };
 $('exportBtn').onclick=()=>{
  const arr=currentTabRows().map((r,i)=>(tab==='capacitacion'||tab==='estudio')?({
