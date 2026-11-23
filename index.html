@@ -130,6 +130,12 @@ button{background:#c82032;border-radius:9px}button:hover{background:#a8192a}butt
 .top-left .client-brand{order:0;margin:0;padding:7px 14px;border:1px solid #edf0f4;border-radius:12px;background:#fafbfd}
 .topright{display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto}
 
+/* Separación estricta entre acceso y plataforma autenticada */
+#app.hidden{display:none!important}
+body.auth-screen header.top{display:none!important}
+body.auth-screen .wrap{width:100%;max-width:none;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+body.auth-screen .login{width:min(450px,100%);margin:0 auto}
+
 </style>
 </head>
 <body>
@@ -245,7 +251,7 @@ button{background:#c82032;border-radius:9px}button:hover{background:#a8192a}butt
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
 const TABLE='company_legal_matrix',DOC_BUCKET='legal-matrix-documents';let sb=null,user=null,profile=null,companies=[],records=[],diagnosisRows=[],tab='all',editingId=null,currentCompany=null;let plants=[],selectedPlantId='',accessCompanyId='',accessPlants=[],accessUsers=[],editingAccessUserId=null;
-const $=id=>document.getElementById(id);const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
+const $=id=>document.getElementById(id);const show=(id,on=true)=>{const el=$(id);if(!el)return;el.classList.toggle('hidden',!on);if(['setup','login','passwordRecovery','app'].includes(id)){document.body.classList.toggle('auth-screen',id!=='app'&&on)}};
 function toast(msg){$('toast').textContent=msg;show('toast');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>show('toast',false),4200)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function isAdmin(){return profile?.role==='platform_admin'}
