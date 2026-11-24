@@ -542,6 +542,73 @@ body.ix-home-only #insightsPanel{
  display:none!important;
 }
 
+
+/* Centro exclusivo de Superadministrador */
+.admin-pill{display:inline-flex;align-items:center;padding:7px 11px;border-radius:20px;background:#fff0f0;color:#c52f36;font-size:10px;font-weight:850;letter-spacing:1px}
+.superadmin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+.superadmin-card{min-height:160px;text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:19px;border:1px solid #dfe4eb;border-radius:14px;background:linear-gradient(145deg,#fff,#f8fafc);color:#172337;cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s}
+.superadmin-card:hover{transform:translateY(-2px);border-color:#d93636;box-shadow:0 8px 22px #17233712}
+.superadmin-icon{font-size:25px}
+.superadmin-card strong{font-size:15px}
+.superadmin-card small{font-size:12px;line-height:1.45;color:#697586}
+.superadmin-card em{font-size:11px;font-style:normal;font-weight:800;color:#d93636;margin-top:auto}
+.superadmin-note{margin-top:18px;padding:13px 15px;border:1px solid #e5e9ef;border-radius:10px;background:#fafbfc;color:#667085;font-size:12px;line-height:1.5}
+@media(max-width:850px){.superadmin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.superadmin-grid{grid-template-columns:1fr}.superadmin-card{min-height:130px}}
+
+
+.ix-superadmin-home{width:100%;margin:18px 0 4px;padding:18px 20px;display:flex;align-items:center;gap:15px;text-align:left;border:1px solid #e4b7b9;border-left:4px solid #d93636;border-radius:13px;background:linear-gradient(110deg,#fff,#fff8f8);color:#1d2939;cursor:pointer}
+.ix-superadmin-home.hidden{display:none!important}
+.ix-superadmin-home-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;background:#fdebec;color:#c52f36;font-size:22px}
+.ix-superadmin-home span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px}
+.ix-superadmin-home b{font-size:14px}.ix-superadmin-home small{font-size:12px;color:#667085}
+.ix-superadmin-home strong{font-size:11px;color:#c52f36;letter-spacing:.4px}
+.ix-superadmin-home:hover{border-color:#d93636;box-shadow:0 6px 18px #17233712}
+@media(max-width:560px){.ix-superadmin-home{align-items:flex-start;flex-wrap:wrap}.ix-superadmin-home strong{margin-left:57px}}
+
+/* Vista exclusiva de Superadministrador: no mostrar inventario ni matriz legal */
+body.ix-superadmin-only #diagnosticDashboard,
+body.ix-superadmin-only #matrixPanel,
+body.ix-superadmin-only #complianceStatusOverview,
+body.ix-superadmin-only #adminTools,
+body.ix-superadmin-only #ixWorkspaceTabs,
+body.ix-superadmin-only #newBtn,
+body.ix-superadmin-only #importBtn,
+body.ix-superadmin-only #exportBtn,
+body.ix-superadmin-only #refreshBtn {
+  display: none !important;
+}
+body.ix-superadmin-only #superadminPanel,
+body.ix-superadmin-only #companiesPanel,
+body.ix-superadmin-only #masterPanel {
+  display: block;
+}
+
+
+/* FIX: al regresar al inicio, #app contiene exclusivamente el menú principal visible */
+#app.ix-home-screen > :not(#ixHome) {
+  display: none !important;
+}
+#app.ix-home-screen {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+body.ix-home-only {
+  overflow-x: hidden;
+}
+body.ix-home-only #diagnosticDashboard,
+body.ix-home-only #matrixPanel,
+body.ix-home-only #adminTools,
+body.ix-home-only #companiesPanel,
+body.ix-home-only #masterPanel,
+body.ix-home-only #superadminPanel,
+body.ix-home-only #complianceStatusOverview,
+body.ix-home-only #ixWorkspace {
+  display: none !important;
+}
+
 </style>
 </head>
 <body>
@@ -582,6 +649,11 @@ body.ix-home-only #insightsPanel{
       <span class="ix-home-vigency-track"><i data-vig-bar></i><i data-exp-bar></i></span>
      </span><span class="ix-arrow">↗</span></button>
   </div>
+  <button id="ixSuperadminHomeCard" class="ix-superadmin-home hidden" type="button">
+   <span class="ix-superadmin-home-icon">⚙</span>
+   <span><b>Administración de IndustriXPro</b><small>Empresas · Plantas · Usuarios · Catálogo legal</small></span>
+   <strong>ABRIR PANEL →</strong>
+  </button>
   <div class="ix-home-footer"><span>INDUSTRIXPRO</span><span>Gestión · Seguimiento · Cumplimiento</span></div>
  </section>
  <div id="ixWorkspace" class="hidden">
@@ -634,7 +706,7 @@ body.ix-home-only #insightsPanel{
   <div class="insight-conclusion" id="insightConclusion"></div>
  </section>
  </div>
- <nav class="tabs"><button class="tab active" data-tab="all">Diagnóstico</button><button class="tab" data-tab="municipal">Cumplimiento Municipal</button><button class="tab" data-tab="state">Cumplimiento Estatal</button><button class="tab" data-tab="federal">Cumplimiento Federal</button><button class="tab" data-tab="estudio">Estudios</button><button class="tab" data-tab="capacitacion">Capacitaciones</button><button class="tab hidden" data-tab="companies" id="companiesTab">Empresas</button><button class="tab hidden" data-tab="master" id="masterTab">Catálogo legal</button></nav>
+ <nav class="tabs" id="ixWorkspaceTabs"><button class="tab active" data-tab="all">Diagnóstico</button><button class="tab" data-tab="municipal">Cumplimiento Municipal</button><button class="tab" data-tab="state">Cumplimiento Estatal</button><button class="tab" data-tab="federal">Cumplimiento Federal</button><button class="tab" data-tab="estudio">Estudios</button><button class="tab" data-tab="capacitacion">Capacitaciones</button><button class="tab hidden" data-tab="companies" id="companiesTab">Empresas</button><button class="tab hidden" data-tab="master" id="masterTab">Catálogo legal</button><button class="tab hidden" data-tab="superadmin" id="superadminTab">Superadministrador</button></nav>
  
  
 
@@ -665,7 +737,27 @@ body.ix-home-only #insightsPanel{
  <div class="grid2"><div class="master-card"><h3>Agregar planta</h3><div class="field"><label>Nombre de la planta *</label><input id="newPlantName" maxlength="140" placeholder="Ej. Planta Norte"></div><div class="field"><label>Ubicación</label><input id="newPlantLocation" maxlength="220" placeholder="Ciudad, estado"></div><button id="addPlantBtn">Agregar planta</button><div id="companyPlantsList" class="master-list"></div></div>
  <div class="master-card"><div class="toolbar"><div><h3>Usuarios de esta empresa</h3><div class="subline">Crea usuarios o ajusta las plantas que pueden consultar.</div></div><button id="addUserBtn">+ Agregar usuario</button></div><div id="companyUsersList" class="master-list"></div></div></div></section></section>
 
- <section id="masterPanel" class="panel hidden">
+ 
+<section id="superadminPanel" class="panel hidden">
+ <div class="headrow"><div><h2>Centro de administración · IndustriXPro</h2><p class="muted">Control central de clientes, plantas, usuarios y recursos de la plataforma.</p></div><span class="admin-pill">SUPERADMINISTRADOR</span></div>
+ <div class="superadmin-grid">
+  <button class="superadmin-card" data-admin-action="companies"><span class="superadmin-icon">🏢</span><strong>Empresas y clientes</strong><small>Crear y administrar organizaciones.</small><em>Administrar empresas →</em></button>
+  <button class="superadmin-card" data-admin-action="plants"><span class="superadmin-icon">🏭</span><strong>Plantas</strong><small>Agregar plantas, ubicaciones y asignaciones.</small><em>Administrar plantas →</em></button>
+  <button class="superadmin-card" data-admin-action="users"><span class="superadmin-icon">👥</span><strong>Usuarios y accesos</strong><small>Gestionar cuentas, roles y permisos por empresa.</small><em>Administrar usuarios →</em></button>
+  <button class="superadmin-card" data-admin-action="roles"><span class="superadmin-icon">🔐</span><strong>Roles de Superusuario</strong><small>Asignar o retirar privilegios administrativos desde IndustriXPro.</small><em>Administrar superusuarios →</em></button>
+  <button class="superadmin-card" data-admin-action="legal"><span class="superadmin-icon">⚖️</span><strong>Catálogo legal maestro</strong><small>Administrar instrumentos y requerimientos centrales.</small><em>Abrir catálogo →</em></button>
+  <button class="superadmin-card" data-admin-action="training"><span class="superadmin-icon">🎓</span><strong>Biblioteca EHS</strong><small>Preparar cursos, videos, presentaciones y evaluaciones.</small><em>Próximamente · módulo por construir</em></button>
+  <button class="superadmin-card" data-admin-action="activity"><span class="superadmin-icon">📊</span><strong>Actividad de la plataforma</strong><small>Resumen administrativo y control de operación.</small><em>Panel informativo</em></button>
+ </div>
+ <section id="platformRolesPanel" class="master-card" style="margin-top:18px;display:none">
+  <div class="headrow"><div><h3>Administración de superusuarios</h3><p class="muted">Asigna o retira el rol de Superadministrador a cuentas existentes.</p></div><button class="secondary" id="reloadPlatformRoles" type="button">Actualizar</button></div>
+  <div class="master-note"><strong>Cuenta propietaria protegida:</strong> gpegallegos1@gmail.com. Esta cuenta no puede perder sus privilegios desde la interfaz.</div>
+  <div id="platformRolesList" class="master-list"><div class="empty">Pulsa actualizar para consultar las cuentas.</div></div>
+ </section>
+ <div class="superadmin-note"><strong>Seguridad:</strong> este apartado solo se muestra a perfiles con rol <code>platform_admin</code>. Los administradores de clientes no tienen acceso a este centro.</div>
+</section>
+
+<section id="masterPanel" class="panel hidden">
   <div class="headrow"><div><h2>Catálogo legal maestro</h2><p class="muted">Biblioteca central de leyes, normas, reglamentos y obligaciones. Solo IndustriXPro puede modificarla.</p></div><button class="secondary" id="reloadMaster">Actualizar catálogo</button></div>
   <div class="master-note"><strong>Importante:</strong> aquí mantienes el catálogo central. Los registros y evaluaciones ya guardados en cada empresa no se sobrescriben cuando actualizas una norma. Para sustituir una norma abrogada, conserva la anterior como inactiva y registra el nuevo instrumento por separado.</div>
   <div class="master-grid">
@@ -757,6 +849,7 @@ const $=id=>document.getElementById(id);const show=(target,on=true)=>{
  if(home&&document.body){
   const homeVisible=!home.classList.contains('hidden');
   document.body.classList.toggle('ix-home-only',homeVisible);
+  const appRoot=$('app');if(appRoot)appRoot.classList.toggle('ix-home-screen',homeVisible);
   if(homeVisible){
    if(workspace)workspace.classList.add('hidden');
    if(outsideDashboard){outsideDashboard.classList.add('hidden');outsideDashboard.style.display='none';}
@@ -779,9 +872,37 @@ function isPasswordRecoveryReturn(){const hash=new URLSearchParams((location.has
 function clearAuthCallbackFromUrl(){try{const u=new URL(location.href);u.hash='';u.searchParams.delete('code');u.searchParams.delete('type');u.searchParams.delete('error');u.searchParams.delete('error_code');u.searchParams.delete('error_description');history.replaceState({},document.title,u.pathname+(u.search||''))}catch(e){}}
 function showPasswordRecovery(){show('setup',false);show('login',false);show('app',false);show('passwordRecovery');}
 async function init(){const cfg=localStorage.getItem('cl_supabase');if(!cfg){show('setup');return}if(!window.supabase){show('setup');toast('No se pudo cargar la librería de conexión.');return}let c;try{c=JSON.parse(cfg)}catch(e){localStorage.removeItem('cl_supabase');show('setup');toast('Configuración inválida.');return}let base='';try{base=new URL(String(c.url||'').trim()).origin}catch(e){}if(!base||!c.key){show('setup');toast('La conexión guardada no es válida.');return}if(base!==String(c.url||'').trim().replace(/\/+$/,'')){c.url=base;localStorage.setItem('cl_supabase',JSON.stringify(c))}sb=window.supabase.createClient(base,c.key);const recoveryReturn=isPasswordRecoveryReturn();sb.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){user=session?.user||null;showPasswordRecovery()}});try{const {data,error}=await sb.auth.getSession();if(error)throw error;if(recoveryReturn){if(data?.session){user=data.session.user;showPasswordRecovery();return}show('login');toast('El enlace de recuperación no es válido o ya venció. Solicita uno nuevo.');return}if(!data?.session){show('login');return}user=data.session.user;await loadProfile()}catch(e){if(recoveryReturn){showPasswordRecovery();toast('No se pudo validar el enlace. Solicita uno nuevo si ya venció.')}else{show('login');toast('Error de conexión: '+(e.message||''))}}}
-async function loadProfile(){const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).single();if(error||!data){toast('No fue posible cargar tu perfil: '+(error?.message||''));await sb.auth.signOut();show('login');return}profile=data;$('userEmail').textContent=user.email;show('logoutBtn');show('login',false);show('setup',false);show('app');$('welcome').textContent=isAdmin()?'Matriz de cumplimiento · Administración':'Matriz de cumplimiento';$('companyLine').textContent=isAdmin()?'IndustriXPro · Vista por empresa y planta':'Registros de las plantas asignadas a tu usuario';show('adminTools',isAdmin());show('companiesTab',isAdmin());show('masterTab',isAdmin());if(isAdmin()){await loadCompanies()}else{await loadCurrentCompany()}await loadPlantScope();await loadMatrix();await refreshCompanyBrand();show('ixWorkspace',false);show('ixHome',true);document.body.classList.add('ix-home-only');show('diagnosticDashboard',false);updateIxHomeContext()}
-function updateIxHomeContext(){const hc=$('ixHomeCompanySelect'),hp=$('ixHomePlantSelect');if(hc){if(isAdmin()){hc.innerHTML=$('companyFilter').innerHTML;hc.value=$('companyFilter').value;hc.disabled=false}else if(currentCompany){hc.innerHTML=`<option value="${currentCompany.id}">${esc(currentCompany.name)}</option>`;hc.value=currentCompany.id;hc.disabled=true}}if(hp){hp.innerHTML=$('plantFilter').innerHTML;hp.value=$('plantFilter').value;hp.disabled=!plants.length}}function openIxModule(tab){document.body.classList.remove('ix-home-only');show('ixHome',false);show('ixWorkspace',true);const btn=document.querySelector(`.tabs .tab[data-tab="${tab}"]`);if(btn)btn.click();window.scrollTo({top:0,behavior:'smooth'});updateIxHomeContext()}
-document.addEventListener('click',e=>{const card=e.target.closest('[data-home-tab]');if(card){openIxModule(card.getAttribute('data-home-tab'));return}if(e.target.closest('#ixBackHome')){show('ixWorkspace',false);show('diagnosticDashboard',false);show('ixHome',true);document.body.classList.add('ix-home-only');window.scrollTo({top:0,behavior:'smooth'});updateIxHomeContext()}if(e.target.closest('#ixHomeRefresh')){loadPlantScope().then(updateIxHomeContext)}});$('ixHomeCompanySelect').onchange=async()=>{if(!isAdmin())return;$('companyFilter').value=$('ixHomeCompanySelect').value;selectedPlantId='';await loadPlantScope();await loadMatrix();await refreshCompanyBrand();updateIxHomeContext()};$('ixHomePlantSelect').onchange=async()=>{$('plantFilter').value=$('ixHomePlantSelect').value;selectedPlantId=$('plantFilter').value;await loadMatrix();updateIxHomeContext()};
+async function loadProfile(){const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).single();if(error||!data){toast('No fue posible cargar tu perfil: '+(error?.message||''));await sb.auth.signOut();show('login');return}profile=data;$('userEmail').textContent=user.email;show('logoutBtn');show('login',false);show('setup',false);show('app');$('welcome').textContent=isAdmin()?'Matriz de cumplimiento · Administración':'Matriz de cumplimiento';$('companyLine').textContent=isAdmin()?'IndustriXPro · Vista por empresa y planta':'Registros de las plantas asignadas a tu usuario';show('adminTools',isAdmin());show('companiesTab',isAdmin());show('masterTab',isAdmin());show('superadminTab',isAdmin());show('ixSuperadminHomeCard',isAdmin());if(isAdmin()){await loadCompanies()}else{await loadCurrentCompany()}await loadPlantScope();await loadMatrix();await refreshCompanyBrand();show('ixWorkspace',false);show('ixHome',true);document.body.classList.add('ix-home-only');show('diagnosticDashboard',false);updateIxHomeContext()}
+$('ixSuperadminHomeCard').onclick=()=>{if(!isAdmin()){toast('Acceso exclusivo para administración de IndustriXPro.');return}openIxModule('superadmin')};
+function updateIxHomeContext(){const hc=$('ixHomeCompanySelect'),hp=$('ixHomePlantSelect');if(hc){if(isAdmin()){hc.innerHTML=$('companyFilter').innerHTML;hc.value=$('companyFilter').value;hc.disabled=false}else if(currentCompany){hc.innerHTML=`<option value="${currentCompany.id}">${esc(currentCompany.name)}</option>`;hc.value=currentCompany.id;hc.disabled=true}}if(hp){hp.innerHTML=$('plantFilter').innerHTML;hp.value=$('plantFilter').value;hp.disabled=!plants.length}}function openIxModule(tab){
+ document.body.classList.remove('ix-home-only');
+ const app=$('app'),home=$('ixHome'),workspace=$('ixWorkspace');
+ if(app)app.classList.remove('ix-home-screen');
+ if(home){home.classList.add('hidden');home.style.display='none';}
+ if(workspace){workspace.classList.remove('hidden');workspace.style.display='block';}
+ const btn=document.querySelector(`.tabs .tab[data-tab="${tab}"]`);
+ if(btn)btn.click();
+ window.scrollTo({top:0,behavior:'smooth'});
+ updateIxHomeContext();
+}
+document.addEventListener('click',e=>{
+ const card=e.target.closest('[data-home-tab]');
+ if(card){openIxModule(card.getAttribute('data-home-tab'));return}
+ if(e.target.closest('#ixBackHome')){
+  document.body.classList.remove('ix-superadmin-only');
+  const app=$('app'),home=$('ixHome'),workspace=$('ixWorkspace');
+  if(app)app.classList.add('ix-home-screen');
+  if(workspace){workspace.classList.add('hidden');workspace.style.display='none';}
+  if(home){home.classList.remove('hidden');home.style.display='block';}
+  show('diagnosticDashboard',false);
+  const dash=$('diagnosticDashboard');if(dash)dash.style.display='none';
+  document.body.classList.add('ix-home-only');
+  window.scrollTo({top:0,behavior:'instant'});
+  updateIxHomeContext();
+  return;
+ }
+ if(e.target.closest('#ixHomeRefresh')){loadPlantScope().then(updateIxHomeContext)}
+});$('ixHomeCompanySelect').onchange=async()=>{if(!isAdmin())return;$('companyFilter').value=$('ixHomeCompanySelect').value;selectedPlantId='';await loadPlantScope();await loadMatrix();await refreshCompanyBrand();updateIxHomeContext()};$('ixHomePlantSelect').onchange=async()=>{$('plantFilter').value=$('ixHomePlantSelect').value;selectedPlantId=$('plantFilter').value;await loadMatrix();updateIxHomeContext()};
 async function loadCompanies(){const {data,error}=await sb.from('companies').select('id,name,logo_path,created_at').order('name');if(error){toast('No fue posible cargar empresas: '+error.message);return}companies=data||[];const opts='<option value="">Todas las empresas</option>'+companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');$('companyFilter').innerHTML=opts;const homeCompany=$('ixHomeCompanySelect');if(homeCompany){homeCompany.innerHTML=opts;homeCompany.value=$('companyFilter').value;homeCompany.disabled=!isAdmin()}$('recordCompany').innerHTML=companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');renderCompanies();await refreshCompanyBrand()}
 async function loadCurrentCompany(){const {data,error}=await sb.from('companies').select('id,name,logo_path').eq('id',profile.company_id).single();if(error){toast('No fue posible cargar la información de tu empresa: '+error.message);return}currentCompany=data;const homeCompany=$('ixHomeCompanySelect');if(homeCompany){homeCompany.innerHTML=`<option value="${data.id}">${esc(data.name)}</option>`;homeCompany.value=data.id;homeCompany.disabled=true}await refreshCompanyBrand()}
 async function loadPlantScope(){
@@ -1134,10 +1255,80 @@ window.openStoredDoc=async(ev,el)=>{
  }finally{el.textContent=old;el.style.pointerEvents='auto'}
 };
 $('recordForm').onsubmit=async e=>{e.preventDefault();const id=$('recordId').value;const companyId=isAdmin()?$('recordCompany').value:profile.company_id;if(!companyId){toast('Selecciona la empresa.');return}const existing=id?records.find(r=>r.id===id):null;const plantId=$('recordPlant').value||existing?.plant_id||'';if(!plantId){toast('Selecciona una planta válida para este registro.');return}if(isAdmin()&&selectedPlantId&&selectedPlantId!==plantId){selectedPlantId=plantId;$('plantFilter').value=plantId}const nextNo=String(records.filter(r=>r.company_id===companyId&&r.plant_id===plantId).length+1);const file=$('documentFile').files?.[0]||null;if(file&&file.size>20*1024*1024){toast('El documento supera el límite de 20 MB.');return}const allowed=['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','image/jpeg','image/png','image/webp'];if(file&&file.type&&!allowed.includes(file.type)){toast('Tipo de archivo no permitido. Usa PDF, Word, Excel o imagen.');return}const obj={company_id:companyId,plant_id:plantId,record_no:existing?.record_no||nextNo,record_type:$('recordType').value,jurisdiction_level:$('jurisdiction').value,document_type:$('documentType').value.trim()||null,activity:$('activity').value.trim(),legal_reference:$('legalReference').value.trim()||null,dependency:$('dependency').value.trim()||null,frequency:$('frequency').value.trim()||null,issue_date:$('issueDate').value||null,expiration_date:$('expirationDate').value||null,renewal_start_date:$('renewalDate').value||null,document_status:$('documentStatus').value.trim()||null,process_status:$('processStatus').value.trim()||null,document_path:existing?.document_path||null,observations:tab==='all'?($('observations').value.trim()||null):(existing?.observations??null),user_comment:tab==='all'?($('userComment').value.trim()||null):($('observations').value.trim()||null),updated_at:new Date().toISOString()};if(!obj.activity){toast('Escribe la actividad.');return}const btn=$('saveRecord');btn.disabled=true;btn.textContent='Guardando...';try{let saved;if(id){const {data,error}=await sb.from(TABLE).update(obj).eq('id',id).select('id,document_path').single();if(error)throw error;saved=data}else{const {data,error}=await sb.from(TABLE).insert(obj).select('id,document_path').single();if(error)throw error;saved=data;$('recordId').value=saved.id}if(file){const cleanName=file.name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-100)||'documento';const path=`${companyId}/${plantId}/${saved.id}/${Date.now()}_${cleanName}`;const {error:uploadError}=await sb.storage.from(DOC_BUCKET).upload(path,file,{upsert:false,contentType:file.type||'application/octet-stream'});if(uploadError){await loadMatrix();toast('La fila se guardó, pero no se pudo adjuntar el documento: '+uploadError.message);return}const {error:pathError}=await sb.from(TABLE).update({document_path:path,updated_at:new Date().toISOString()}).eq('id',saved.id);if(pathError){toast('El archivo se subió, pero no se pudo vincular a la fila: '+pathError.message);await loadMatrix();return}if(existing?.document_path){await sb.storage.from(DOC_BUCKET).remove([existing.document_path])}}show('modalBack',false);toast(id?'Fila actualizada.':'Fila guardada.');await loadMatrix()}catch(err){toast('No se pudo guardar: '+(err.message||'Error desconocido'))}finally{btn.disabled=false;btn.textContent='Guardar fila'}};
-function switchTab(t){tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));const companiesView=t==='companies',masterView=t==='master';show('diagnosticDashboard',t==='all');const complianceOverview=['municipal','state','federal'].includes(t);
+async function loadPlatformRoles(){
+ if(!isAdmin())return;
+ const panel=$('platformRolesPanel'),list=$('platformRolesList');
+ panel.style.display='block';list.innerHTML='<div class="empty">Consultando usuarios...</div>';
+ try{
+  const {data,error}=await sb.rpc('platform_admin_list_users');
+  if(error)throw error;
+  const rows=data||[];
+  list.innerHTML=rows.map(u=>{
+   const owner=String(u.email||'').toLowerCase()==='gpegallegos1@gmail.com';
+   const admin=u.role==='platform_admin';
+   return `<div class="master-list-row" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line,#ddd)">
+    <div><strong>${esc(u.email||'Cuenta sin correo')}</strong><div class="subline">${esc(u.company_name|| (u.company_id?'Usuario de empresa':'Cuenta sin empresa'))} · ${admin?'Superadministrador':'Usuario estándar'}</div></div>
+    <div class="actions">${owner?'<span class="pill info">Propietario protegido</span>':admin?'<button class="danger rowbtn" type="button" onclick="setPlatformAdmin(&quot;${esc(u.id)}&quot;,false)">Retirar superusuario</button>':'<button class="rowbtn" type="button" onclick="setPlatformAdmin(&quot;${esc(u.id)}&quot;,true)">Hacer superusuario</button>'}</div>
+   </div>`;
+  }).join('')||'<div class="empty">No se encontraron cuentas.</div>';
+ }catch(e){list.innerHTML=`<div class="empty">No se pudo consultar la lista: ${esc(e.message||'Error desconocido')}. Instala las funciones SQL de administración y vuelve a intentar.</div>`;}
+}
+window.setPlatformAdmin=async function(id,makeAdmin){
+ if(!isAdmin()||!id)return;
+ const action=makeAdmin?'asignar el rol de Superadministrador':'retirar el rol de Superadministrador';
+ if(!confirm(`¿Confirmas ${action} a esta cuenta?`))return;
+ try{const {error}=await sb.rpc('platform_admin_set_role',{p_target_user_id:id,p_make_admin:makeAdmin});if(error)throw error;toast(makeAdmin?'Privilegios de Superadministrador asignados.':'Privilegios de Superadministrador retirados.');await loadPlatformRoles();}
+ catch(e){toast('No se pudo actualizar el rol: '+(e.message||'Error desconocido'));}
+};
+$('reloadPlatformRoles')?.addEventListener('click',loadPlatformRoles);
+function switchTab(t){tab=t;document.body.classList.toggle('ix-superadmin-only',t==='superadmin');
+document.addEventListener('click',async e=>{
+ const card=e.target.closest('[data-admin-action]');
+ if(!card)return;
+ if(!isAdmin()){toast('Acceso exclusivo para administración de IndustriXPro.');return}
+ const action=card.getAttribute('data-admin-action');
+ if(action==='companies'||action==='plants'||action==='users'){
+  switchTab('companies');
+  await loadCompanies();
+  $('companiesPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  if(action==='plants'||action==='users'){
+   const firstCompany=companies?.[0];
+   if(firstCompany){await manageCompanyAccess(firstCompany.id)}
+   else toast('Primero registra una empresa para administrar sus plantas y usuarios.');
+  }
+ }else if(action==='roles'){
+  $('platformRolesPanel').style.display='block';
+  await loadPlatformRoles();
+  $('platformRolesPanel').scrollIntoView({behavior:'smooth',block:'start'});
+ }else if(action==='legal'){
+  switchTab('master');
+  await loadMaster();
+ }else if(action==='training'){
+  toast('La Biblioteca EHS queda preparada como siguiente módulo; todavía no almacena cursos.');
+ }else if(action==='activity'){
+  toast('El panel de actividad está reservado para una siguiente etapa.');
+ }
+});
+
+document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));const companiesView=t==='companies',masterView=t==='master',superadminView=t==='superadmin';const complianceOverview=['municipal','state','federal'].includes(t);
+ show('diagnosticDashboard',t==='all');
  const legalSummary=$('legalEvaluationSummary');
- if(legalSummary)legalSummary.classList.toggle('hidden',complianceOverview);show('complianceStatusOverview',complianceOverview);show('matrixPanel',!companiesView&&!masterView);show('companiesPanel',companiesView);show('masterPanel',masterView);show('newBtn',!companiesView&&!masterView);show('importBtn',t==='all'&&!companiesView&&!masterView);show('exportBtn',!companiesView&&!masterView);}
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',async()=>{const t=b.dataset.tab;if((t==='companies'||t==='master')&&!isAdmin()){toast('Acceso exclusivo para administración de IndustriXPro.');return}switchTab(t);if(t==='companies'){await loadCompanies();renderCompanies()}else if(t==='master'){await loadMaster()}else{render()}}));
+ if(legalSummary)legalSummary.classList.toggle('hidden',complianceOverview);
+ show('adminTools',!superadminView&&isAdmin());
+ show('complianceStatusOverview',complianceOverview);
+ show('matrixPanel',!companiesView&&!masterView&&!superadminView);
+ show('companiesPanel',companiesView);
+ show('masterPanel',masterView);
+ show('superadminPanel',superadminView);
+ show('ixWorkspaceTabs',!superadminView);
+ show('newBtn',!companiesView&&!masterView&&!superadminView);
+ show('importBtn',t==='all'&&!companiesView&&!masterView&&!superadminView);
+ show('exportBtn',!companiesView&&!masterView&&!superadminView);
+ show('refreshBtn',!superadminView);
+ if(superadminView){$('welcome').textContent='Administración de IndustriXPro';$('companyLine').textContent='Control global de empresas, plantas, usuarios y catálogo legal.';}
+ else {$('welcome').textContent=isAdmin()?'Matriz de cumplimiento · Administración':'Matriz de cumplimiento';$('companyLine').textContent=isAdmin()?'IndustriXPro · Vista por empresa y planta':'Registros de las plantas asignadas a tu usuario';}
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',async()=>{const t=b.dataset.tab;if((t==='companies'||t==='master'||t==='superadmin')&&!isAdmin()){toast('Acceso exclusivo para administración de IndustriXPro.');return}switchTab(t);if(t==='companies'){await loadCompanies();renderCompanies()}else if(t==='master'){await loadMaster()}else{render()}}));
 $('newBtn').onclick=()=>openForm();$('closeModal').onclick=$('cancelModal').onclick=()=>show('modalBack',false);$('refreshBtn').onclick=loadMatrix;$('search').oninput=render;$('statusFilter').onchange=render;$('companyFilter').onchange=async()=>{selectedPlantId='';await loadPlantScope();await loadMatrix();await refreshCompanyBrand();updateIxHomeContext()};$('plantFilter').onchange=async()=>{selectedPlantId=$('plantFilter').value;await loadMatrix();updateIxHomeContext()};$('recordCompany').onchange=async()=>loadRecordPlants($('recordCompany').value, '');$('companiesBtn').onclick=()=>{switchTab('companies');renderCompanies()};
 $('saveSetup').onclick=()=>{let raw=$('sbUrl').value.trim(),key=$('sbKey').value.trim(),url='';try{url=new URL(raw).origin}catch(e){}if(!url||!url.startsWith('https://')||!key){toast('Escribe una URL https:// válida y la clave pública.');return}localStorage.setItem('cl_supabase',JSON.stringify({url,key}));location.reload()};
 $('loginBtn').onclick=async()=>{const b=$('loginBtn');b.disabled=true;try{const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;user=data.user;await loadProfile()}catch(e){toast('No se pudo iniciar sesión: '+(e.message||''))}finally{b.disabled=false}};
