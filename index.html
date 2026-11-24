@@ -609,6 +609,21 @@ body.ix-home-only #ixWorkspace {
   display: none !important;
 }
 
+
+/* No mostrar inventario legal/resumen de aplicabilidad en submódulos administrativos */
+body.ix-admin-subview #adminTools,
+body.ix-admin-subview #legalEvaluationSummary {
+  display: none !important;
+}
+
+
+/* FIX DEFINITIVO: el resumen legal no pertenece a la pantalla de inicio ni a submódulos administrativos.
+   Solo debe mostrarse en el diagnóstico general (tab all). */
+body.ix-home-only #legalEvaluationSummary,
+body.ix-admin-subview #legalEvaluationSummary {
+  display: none !important;
+}
+
 </style>
 </head>
 <body>
@@ -661,7 +676,9 @@ body.ix-home-only #ixWorkspace {
 
  <div class="headrow"><div><h1 id="welcome">Matriz de cumplimiento</h1><p id="companyLine">Seguimiento de obligaciones, estudios, permisos y capacitaciones.</p></div><div class="actions"><button class="secondary" id="refreshBtn">Actualizar</button><button class="secondary" id="importBtn">Importar Excel</button><button class="secondary" id="exportBtn">Exportar Excel</button><button id="newBtn">+ Agregar registro</button><input id="importFile" class="hidden" type="file" accept=".xlsx,.xls" /></div></div>
  <section id="adminTools" class="panel hidden"><div class="toolbar"><div><strong>Administración de IndustriXPro</strong><div class="subline">Selecciona una empresa y una planta para revisar su matriz.</div></div><div class="actions"><select id="companyFilter"><option value="">Todas las empresas</option></select><button class="secondary" id="companiesBtn">Empresas, plantas y usuarios</button></div></div>
- <section id="legalEvaluationSummary" class="legal-evaluation-summary" aria-label="Resumen de requerimientos legales">
+</div>
+</section>
+<section id="legalEvaluationSummary" class="legal-evaluation-summary" aria-label="Resumen de requerimientos legales">
   <article class="legal-total-box">
    <span class="legal-summary-kicker">INVENTARIO LEGAL</span>
    <strong id="legalSummaryTotal">0</strong>
@@ -682,8 +699,6 @@ body.ix-home-only #ixWorkspace {
   </article>
  </section>
 
- </div>
-</section>
  
  
  <div id="diagnosticDashboard">
@@ -745,7 +760,6 @@ body.ix-home-only #ixWorkspace {
   <button class="superadmin-card" data-admin-action="plants"><span class="superadmin-icon">🏭</span><strong>Plantas</strong><small>Agregar plantas, ubicaciones y asignaciones.</small><em>Administrar plantas →</em></button>
   <button class="superadmin-card" data-admin-action="users"><span class="superadmin-icon">👥</span><strong>Usuarios y accesos</strong><small>Gestionar cuentas, roles y permisos por empresa.</small><em>Administrar usuarios →</em></button>
   <button class="superadmin-card" data-admin-action="roles"><span class="superadmin-icon">🔐</span><strong>Roles de Superusuario</strong><small>Asignar o retirar privilegios administrativos desde IndustriXPro.</small><em>Administrar superusuarios →</em></button>
-  <button class="superadmin-card" data-admin-action="legal"><span class="superadmin-icon">⚖️</span><strong>Catálogo legal maestro</strong><small>Administrar instrumentos y requerimientos centrales.</small><em>Abrir catálogo →</em></button>
   <button class="superadmin-card" data-admin-action="training"><span class="superadmin-icon">🎓</span><strong>Biblioteca EHS</strong><small>Preparar cursos, videos, presentaciones y evaluaciones.</small><em>Próximamente · módulo por construir</em></button>
   <button class="superadmin-card" data-admin-action="activity"><span class="superadmin-icon">📊</span><strong>Actividad de la plataforma</strong><small>Resumen administrativo y control de operación.</small><em>Panel informativo</em></button>
  </div>
@@ -880,6 +894,7 @@ function updateIxHomeContext(){const hc=$('ixHomeCompanySelect'),hp=$('ixHomePla
  if(app)app.classList.remove('ix-home-screen');
  if(home){home.classList.add('hidden');home.style.display='none';}
  if(workspace){workspace.classList.remove('hidden');workspace.style.display='block';}
+ const legalSummary=$('legalEvaluationSummary');if(legalSummary)legalSummary.style.display='none';
  const btn=document.querySelector(`.tabs .tab[data-tab="${tab}"]`);
  if(btn)btn.click();
  window.scrollTo({top:0,behavior:'smooth'});
@@ -889,12 +904,14 @@ document.addEventListener('click',e=>{
  const card=e.target.closest('[data-home-tab]');
  if(card){openIxModule(card.getAttribute('data-home-tab'));return}
  if(e.target.closest('#ixBackHome')){
-  document.body.classList.remove('ix-superadmin-only');
+  document.body.classList.remove('ix-superadmin-only','ix-admin-subview');
   const app=$('app'),home=$('ixHome'),workspace=$('ixWorkspace');
   if(app)app.classList.add('ix-home-screen');
   if(workspace){workspace.classList.add('hidden');workspace.style.display='none';}
   if(home){home.classList.remove('hidden');home.style.display='block';}
   show('diagnosticDashboard',false);
+  show('legalEvaluationSummary',false);
+  const legalSummary=$('legalEvaluationSummary');if(legalSummary)legalSummary.style.display='none';
   const dash=$('diagnosticDashboard');if(dash)dash.style.display='none';
   document.body.classList.add('ix-home-only');
   window.scrollTo({top:0,behavior:'instant'});
@@ -1087,7 +1104,7 @@ function render(){
  const statusOverviewTabs=['municipal','state','federal','estudio','capacitacion'];
  const complianceOverview=statusOverviewTabs.includes(tab);
  const legalSummary=$('legalEvaluationSummary');
- if(legalSummary)legalSummary.classList.toggle('hidden',complianceOverview);
+ if(legalSummary)legalSummary.classList.toggle('hidden',tab!=='all'||complianceOverview||tab==='companies'||tab==='master'||tab==='superadmin');
  show('complianceStatusOverview',complianceOverview);
  show('matrixPanel',!['companies','master'].includes(tab));
  if(complianceOverview)renderComplianceStatusOverview(tab);
@@ -1281,7 +1298,7 @@ window.setPlatformAdmin=async function(id,makeAdmin){
  catch(e){toast('No se pudo actualizar el rol: '+(e.message||'Error desconocido'));}
 };
 $('reloadPlatformRoles')?.addEventListener('click',loadPlatformRoles);
-function switchTab(t){tab=t;document.body.classList.toggle('ix-superadmin-only',t==='superadmin');
+function switchTab(t){tab=t;document.body.classList.toggle('ix-admin-subview',['companies','master','superadmin'].includes(t));document.body.classList.toggle('ix-superadmin-only',t==='superadmin');
 document.addEventListener('click',async e=>{
  const card=e.target.closest('[data-admin-action]');
  if(!card)return;
@@ -1313,8 +1330,8 @@ document.addEventListener('click',async e=>{
 document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));const companiesView=t==='companies',masterView=t==='master',superadminView=t==='superadmin';const complianceOverview=['municipal','state','federal'].includes(t);
  show('diagnosticDashboard',t==='all');
  const legalSummary=$('legalEvaluationSummary');
- if(legalSummary)legalSummary.classList.toggle('hidden',complianceOverview);
- show('adminTools',!superadminView&&isAdmin());
+ if(legalSummary)legalSummary.classList.toggle('hidden',t!=='all'||complianceOverview);
+ show('adminTools',t==='all'&&isAdmin());
  show('complianceStatusOverview',complianceOverview);
  show('matrixPanel',!companiesView&&!masterView&&!superadminView);
  show('companiesPanel',companiesView);
